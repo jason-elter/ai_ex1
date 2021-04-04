@@ -74,7 +74,37 @@ def breadth_first_search(problem):
     Search the shallowest nodes in the search tree first.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    STATE = 0
+    ACTION = 1
+    STEP_COST = 2
+
+    fringe = util.Queue()
+    cur_state = problem.get_start_state()
+    visited = {cur_state}
+    tracker = 0
+    backtrack = [(cur_state, 0)]
+    fringe.push((cur_state, None, 0))
+
+    while True:
+        cur_state = fringe.pop()
+        if problem.is_goal_state(cur_state[STATE]):
+            break
+        successors = problem.get_successors(cur_state[STATE])
+        for triple in successors:
+            if triple[STATE] not in visited:
+                visited.add(triple[STATE])
+                fringe.push(triple)
+                backtrack.append((triple, tracker))
+        tracker += 1
+
+    path = []
+    while tracker != 0:
+        path.append(backtrack[tracker][0][ACTION])
+        tracker = backtrack[tracker][1]
+    path.reverse()
+    return path
+
+    # util.raiseNotDefined()
 
 
 def uniform_cost_search(problem):
@@ -99,7 +129,6 @@ def a_star_search(problem, heuristic=null_heuristic):
     """
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
-
 
 
 # Abbreviations
