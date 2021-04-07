@@ -72,11 +72,12 @@ def depth_first_search(problem):
 def breadth_first_search(problem):
     """
     Search the shallowest nodes in the search tree first.
+    Fringe is  queue of triples (successor, action, stepCost).
     """
     "*** YOUR CODE HERE ***"
     STATE = 0
     ACTION = 1
-    STEP_COST = 2
+    # STEP_COST = 2
 
     fringe = util.Queue()
     cur_state = problem.get_start_state()
@@ -110,9 +111,43 @@ def breadth_first_search(problem):
 def uniform_cost_search(problem):
     """
     Search the node of least total cost first.
+    Fringe is a priority queue of tuples: (successor, action, action cost, parent ID)
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    STATE = 0
+    ACTION = 1
+    STEP_COST = 2
+    COST_FROM_ROOT = 2
+    PARENT_ID = 3
+
+    fringe = util.PriorityQueue()
+    cur_state = problem.get_start_state()
+    visited = {cur_state}
+    counter = 0
+    backtrack = {}
+    fringe.push((cur_state, None, 0, 0), 0)
+
+    while True:
+        cur_state = fringe.pop()
+        backtrack[counter] = cur_state
+        if problem.is_goal_state(cur_state[STATE]):
+            break
+        successors = problem.get_successors(cur_state[STATE])
+        for triple in successors:
+            if triple[STATE] not in visited:
+                visited.add(triple[STATE])
+                fringe.push((triple[STATE], triple[ACTION], triple[STEP_COST] + cur_state[COST_FROM_ROOT], counter),
+                            triple[STEP_COST] + cur_state[COST_FROM_ROOT])
+        counter += 1
+
+    path = []
+    tracker = counter
+    while tracker != 0:
+        path.append(backtrack[tracker][ACTION])
+        tracker = backtrack[tracker][PARENT_ID]
+    path.reverse()
+    return path
+    # util.raiseNotDefined()
 
 
 def null_heuristic(state, problem=None):
