@@ -49,8 +49,6 @@ class SearchProblem:
         util.raiseNotDefined()
 
 
-
-
 def depth_first_search(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -69,20 +67,73 @@ def depth_first_search(problem):
     util.raiseNotDefined()
 
 
+STATE = 0
+ACTION = 1
+STEP_COST = 2
+COST_FROM_ROOT = 2
+PARENT_ID = 3
+
+
 def breadth_first_search(problem):
     """
     Search the shallowest nodes in the search tree first.
+    Fringe is  queue of triples (successor, action, stepCost).
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.Queue()
+    first_state = problem.get_start_state()
+    visited = {first_state}
+    counter = 0
+    cur_node = Node((first_state, None, 0), 0)
+    backtrack = {counter: cur_node}
+    fringe.push(cur_node)
+
+    while True:
+        cur_node = fringe.pop()
+        backtrack[counter] = cur_node
+        if problem.is_goal_state(cur_node.get_state()):
+            break
+        successors = problem.get_successors(cur_node.get_state())
+        for triple in successors:
+            if triple[STATE] not in visited:
+                visited.add(triple[STATE])
+                fringe.push(Node(triple, counter))
+        counter += 1
+    return get_path(backtrack, counter)
+    # util.raiseNotDefined()
 
 
 def uniform_cost_search(problem):
     """
     Search the node of least total cost first.
+    Fringe is a priority queue of tuples: (parent_ID, state, action, action cost)
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    fringe = util.PriorityQueue()
+    first_state = problem.get_start_state()
+    visited = {first_state}
+    counter = 0
+    cur_node = Node((first_state, None, 0), 0)
+    # backtrack = [cur_node]
+    backtrack = {}
+    fringe.push(cur_node, 0)
+
+    while True:
+        cur_node = fringe.pop()
+        backtrack[counter] = cur_node
+        if problem.is_goal_state(cur_node.get_state()):
+            break
+        successors = problem.get_successors(cur_node.get_state())
+        for triple in successors:
+            if triple[STATE] not in visited:
+                visited.add(triple[STATE])
+                fringe.push(Node((triple[STATE], triple[ACTION], triple[STEP_COST] + cur_node.get_cost()), counter),
+                            triple[STEP_COST] + cur_node.get_cost())
+        counter += 1
+
+    return get_path(backtrack, counter)
+    # util.raiseNotDefined()
 
 
 def null_heuristic(state, problem=None):
@@ -101,6 +152,38 @@ def a_star_search(problem, heuristic=null_heuristic):
     util.raiseNotDefined()
 
 
+class Node:
+    def __init__(self, data, parent_id):
+        self.data = data    # (state, action, stepCost)
+        # self.node_id = node_id
+        self.parent_id = parent_id
+
+    def __lt__(self, other):
+        return True
+
+    def get_state(self):
+        return self.data[STATE]
+
+    def get_action(self):
+        return self.data[ACTION]
+
+    def get_cost(self):
+        return self.data[STEP_COST]
+
+    def get_parent(self):
+        return self.parent_id
+
+
+def get_path(backtrack, counter):
+    path = []
+    tracker = counter
+    while tracker != 0:
+        # path.append(backtrack[tracker][0][ACTION])
+        path.append(backtrack[tracker].get_action())
+
+        tracker = backtrack[tracker].get_parent()
+    path.reverse()
+    return path
 
 # Abbreviations
 bfs = breadth_first_search
