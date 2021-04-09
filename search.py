@@ -49,8 +49,6 @@ class SearchProblem:
         util.raiseNotDefined()
 
 
-
-
 def depth_first_search(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -69,84 +67,72 @@ def depth_first_search(problem):
     util.raiseNotDefined()
 
 
+STATE = 0
+ACTION = 1
+STEP_COST = 2
+COST_FROM_ROOT = 2
+PARENT_ID = 3
+
+
 def breadth_first_search(problem):
     """
     Search the shallowest nodes in the search tree first.
     Fringe is  queue of triples (successor, action, stepCost).
     """
     "*** YOUR CODE HERE ***"
-    STATE = 0
-    ACTION = 1
-    # STEP_COST = 2
-
     fringe = util.Queue()
-    cur_state = problem.get_start_state()
-    visited = {cur_state}
-    tracker = 0
-    backtrack = [(cur_state, 0)]
-    fringe.push((cur_state, None, 0))
+    first_state = problem.get_start_state()
+    visited = {first_state}
+    counter = 0
+    cur_node = Node((first_state, None, 0), 0)
+    backtrack = {counter: cur_node}
+    fringe.push(cur_node)
 
     while True:
-        cur_state = fringe.pop()
-        if problem.is_goal_state(cur_state[STATE]):
+        cur_node = fringe.pop()
+        backtrack[counter] = cur_node
+        if problem.is_goal_state(cur_node.get_state()):
             break
-        successors = problem.get_successors(cur_state[STATE])
+        successors = problem.get_successors(cur_node.get_state())
         for triple in successors:
             if triple[STATE] not in visited:
                 visited.add(triple[STATE])
-                fringe.push(triple)
-                backtrack.append((triple, tracker))
-        tracker += 1
-
-    path = []
-    while tracker != 0:
-        path.append(backtrack[tracker][0][ACTION])
-        tracker = backtrack[tracker][1]
-    path.reverse()
-    return path
-
+                fringe.push(Node(triple, counter))
+        counter += 1
+    return get_path(backtrack, counter)
     # util.raiseNotDefined()
 
 
 def uniform_cost_search(problem):
     """
     Search the node of least total cost first.
-    Fringe is a priority queue of tuples: (successor, action, action cost, parent ID)
+    Fringe is a priority queue of tuples: (parent_ID, state, action, action cost)
     """
     "*** YOUR CODE HERE ***"
-    STATE = 0
-    ACTION = 1
-    STEP_COST = 2
-    COST_FROM_ROOT = 2
-    PARENT_ID = 3
 
     fringe = util.PriorityQueue()
-    cur_state = problem.get_start_state()
-    visited = {cur_state}
+    first_state = problem.get_start_state()
+    visited = {first_state}
     counter = 0
+    cur_node = Node((first_state, None, 0), 0)
+    # backtrack = [cur_node]
     backtrack = {}
-    fringe.push((cur_state, None, 0, 0), 0)
+    fringe.push(cur_node, 0)
 
     while True:
-        cur_state = fringe.pop()
-        backtrack[counter] = cur_state
-        if problem.is_goal_state(cur_state[STATE]):
+        cur_node = fringe.pop()
+        backtrack[counter] = cur_node
+        if problem.is_goal_state(cur_node.get_state()):
             break
-        successors = problem.get_successors(cur_state[STATE])
+        successors = problem.get_successors(cur_node.get_state())
         for triple in successors:
             if triple[STATE] not in visited:
                 visited.add(triple[STATE])
-                fringe.push((triple[STATE], triple[ACTION], triple[STEP_COST] + cur_state[COST_FROM_ROOT], counter),
-                            triple[STEP_COST] + cur_state[COST_FROM_ROOT])
+                fringe.push(Node((triple[STATE], triple[ACTION], triple[STEP_COST] + cur_node.get_cost()), counter),
+                            triple[STEP_COST] + cur_node.get_cost())
         counter += 1
 
-    path = []
-    tracker = counter
-    while tracker != 0:
-        path.append(backtrack[tracker][ACTION])
-        tracker = backtrack[tracker][PARENT_ID]
-    path.reverse()
-    return path
+    return get_path(backtrack, counter)
     # util.raiseNotDefined()
 
 
@@ -165,6 +151,39 @@ def a_star_search(problem, heuristic=null_heuristic):
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
 
+
+class Node:
+    def __init__(self, data, parent_id):
+        self.data = data    # (state, action, stepCost)
+        # self.node_id = node_id
+        self.parent_id = parent_id
+
+    def __lt__(self, other):
+        return True
+
+    def get_state(self):
+        return self.data[STATE]
+
+    def get_action(self):
+        return self.data[ACTION]
+
+    def get_cost(self):
+        return self.data[STEP_COST]
+
+    def get_parent(self):
+        return self.parent_id
+
+
+def get_path(backtrack, counter):
+    path = []
+    tracker = counter
+    while tracker != 0:
+        # path.append(backtrack[tracker][0][ACTION])
+        path.append(backtrack[tracker].get_action())
+
+        tracker = backtrack[tracker].get_parent()
+    path.reverse()
+    return path
 
 # Abbreviations
 bfs = breadth_first_search
