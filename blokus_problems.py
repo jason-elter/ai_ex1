@@ -107,19 +107,33 @@ def blokus_corners_heuristic(state, problem):
     inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
     """
     "*** YOUR CODE HERE ***"
-    EMPTY_TILE = -1
-    cur_min = float('inf')
 
-    for r in range(problem.board_h):
-        for c in range(problem.board_w):
-            if state[r, c] != EMPTY_TILE:
-                corner_distances_normalized = ((problem.board_h - r + c)/3, (problem.board_w - c + r)/3,
-                                               (problem.board_w + problem.board_h - r - c)/3)
-                sum_value = sum(corner_distances_normalized)
-                if sum_value < cur_min:
-                    cur_min = sum_value
-    return cur_min
-    # util.raiseNotDefined()
+    def blokus_corners_heuristic(state, problem):
+        """
+        Your heuristic for the BlokusCornersProblem goes here.
+
+        This heuristic must be consistent to ensure correctness.  First, try to come up
+        with an admissible heuristic; almost all admissible heuristics will be consistent
+        as well.
+
+        If using A* ever finds a solution that is worse uniform cost search finds,
+        your heuristic is *not* consistent, and probably not admissible!  On the other hand,
+        inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
+        """
+        "*** YOUR CODE HERE ***"
+        EMPTY_TILE = -1
+        cur_min = float('inf')
+
+        for r in range(problem.board_h):
+            for c in range(problem.board_w):
+                if state[r, c] != EMPTY_TILE:
+                    corner_distances_normalized = ((problem.board_h - r + c) / 3, (problem.board_w - c + r) / 3,
+                                                   (problem.board_w + problem.board_h - r - c) / 3)
+                    sum_value = sum(corner_distances_normalized)
+                    if sum_value < cur_min:
+                        cur_min = sum_value
+        return cur_min
+        # util.raiseNotDefined()
 
 
 class BlokusCoverProblem(SearchProblem):

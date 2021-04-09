@@ -77,9 +77,12 @@ PARENT_ID = 3
 def breadth_first_search(problem):
     """
     Search the shallowest nodes in the search tree first.
-    Fringe is  queue of triples (successor, action, stepCost).
     """
     "*** YOUR CODE HERE ***"
+    print("Start:", problem.get_start_state().state)
+    print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
+    print("Start's successors:", problem.get_successors(problem.get_start_state()))
+
     fringe = util.Queue()
     first_state = problem.get_start_state()
     visited = {first_state}
@@ -103,19 +106,19 @@ def breadth_first_search(problem):
     # util.raiseNotDefined()
 
 
+
 def uniform_cost_search(problem):
     """
     Search the node of least total cost first.
-    Fringe is a priority queue of tuples: (parent_ID, state, action, action cost)
+        Fringe is a priority queue of tuples: (successor, action, action cost, parent ID)
+        prioritized by cost from root.
     """
     "*** YOUR CODE HERE ***"
-
     fringe = util.PriorityQueue()
     first_state = problem.get_start_state()
     visited = {first_state}
     counter = 0
     cur_node = Node((first_state, None, 0), 0)
-    # backtrack = [cur_node]
     backtrack = {}
     fringe.push(cur_node, 0)
 
