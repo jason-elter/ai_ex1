@@ -94,8 +94,8 @@ class BlokusCornersProblem(SearchProblem):
         be composed of legal moves
         """
         cost_sum = 0
-        for action in actions:
-            cost_sum += action.piece.get_num_tiles()
+        for move in actions:
+            cost_sum += move.piece.get_num_tiles()
         return cost_sum
 
 
@@ -144,8 +144,7 @@ class BlokusCoverProblem(SearchProblem):
     def __init__(self, board_w, board_h, piece_list, starting_point=(0, 0), targets=[(0, 0)]):
         self.targets = targets.copy()
         self.expanded = 0
-        "*** YOUR CODE HERE ***"
-        self.board = Board(board_w, board_h, 1, piece_list)
+        self.board = Board(board_w, board_h, 1, piece_list, starting_point)
 
     def get_start_state(self):
         """
@@ -159,11 +158,11 @@ class BlokusCoverProblem(SearchProblem):
 
         Returns True if and only if the state is a valid goal state
         """
-        "*** YOUR CODE HERE ***"
-        return state.get_position(0, self.board.board_w - 1) != EMPTY_TILE and \
-               state.get_position(self.board.board_h - 1, 0) != EMPTY_TILE and \
-               state.get_position(self.board.board_h - 1, self.board.board_w - 1) != EMPTY_TILE
-        # util.raiseNotDefined()
+        board = state.state
+        for target in self.targets:
+            if board[target] == EMPTY_TILE:
+                return False
+        return True
 
     def get_successors(self, state):
         """
@@ -186,12 +185,10 @@ class BlokusCoverProblem(SearchProblem):
         This method returns the total cost of a particular sequence of actions.  The sequence must
         be composed of legal moves
         """
-        "*** YOUR CODE HERE ***"
-        sum = 0
+        cost_sum = 0
         for move in actions:
-            sum += move.piece.get_num_tiles()
-        return sum
-        # util.raiseNotDefined()
+            cost_sum += move.piece.get_num_tiles()
+        return cost_sum
 
 
 def blokus_cover_heuristic(state, problem):
