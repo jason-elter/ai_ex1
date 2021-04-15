@@ -3,6 +3,9 @@ from search import SearchProblem, ucs
 import util
 
 
+EMPTY_TILE = -1
+
+
 class BlokusFillProblem(SearchProblem):
     """
     A one-player Blokus game as a search problem.
@@ -121,12 +124,11 @@ def blokus_corners_heuristic(state, problem):
         inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
         """
         "*** YOUR CODE HERE ***"
-        EMPTY_TILE = -1
         cur_min = float('inf')
 
         for r in range(problem.board_h):
             for c in range(problem.board_w):
-                if state[r, c] != EMPTY_TILE:
+                if state.get_position(r, c) != EMPTY_TILE:
                     corner_distances_normalized = ((problem.board_h - r + c) / 3, (problem.board_w - c + r) / 3,
                                                    (problem.board_w + problem.board_h - r - c) / 3)
                     sum_value = sum(corner_distances_normalized)
@@ -141,6 +143,7 @@ class BlokusCoverProblem(SearchProblem):
         self.targets = targets.copy()
         self.expanded = 0
         "*** YOUR CODE HERE ***"
+        self.board = Board(board_w, board_h, 1, piece_list)
 
     def get_start_state(self):
         """
@@ -149,8 +152,16 @@ class BlokusCoverProblem(SearchProblem):
         return self.board
 
     def is_goal_state(self, state):
+        """
+        state: Search state
+
+        Returns True if and only if the state is a valid goal state
+        """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return state.get_position(0, self.board.board_w - 1) != EMPTY_TILE and \
+               state.get_position(self.board.board_h - 1, 0) != EMPTY_TILE and \
+               state.get_position(self.board.board_h - 1, self.board.board_w - 1) != EMPTY_TILE
+        # util.raiseNotDefined()
 
     def get_successors(self, state):
         """
@@ -174,7 +185,11 @@ class BlokusCoverProblem(SearchProblem):
         be composed of legal moves
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        sum = 0
+        for move in actions:
+            sum += move.piece.get_num_tiles()
+        return sum
+        # util.raiseNotDefined()
 
 
 def blokus_cover_heuristic(state, problem):
@@ -192,6 +207,8 @@ class ClosestLocationSearch:
         self.expanded = 0
         self.targets = targets.copy()
         "*** YOUR CODE HERE ***"
+        self.board = Board(board_w, board_h, 1, piece_list)
+        self.starting_point = starting_point
 
     def get_start_state(self):
         """
@@ -219,8 +236,48 @@ class ClosestLocationSearch:
         return backtrace
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        current_state = self.board.__copy__()
+        backtrace = []
 
+        if len(self.targets) == 0:
+            return []
+        if self.targets[0] == self.starting_point:
+            return []
+        targets_remaining = set(self.targets)
+        acquired = {self.starting_point}
+
+        # find closest target:
+        # closest = float('inf')
+        # first_target = self.targets[0]
+        # for target in self.targets:
+        #     manhattan_dist = util.manhattanDistance(target, self.starting_point)
+        #     if manhattan_dist < closest:
+        #         first_target = target
+        #         closest = manhattan_dist
+        cur_target = self.next_target(acquired, targets_remaining)
+
+        while targets_remaining:
+            sub_problem = BlokusCoverProblem(self.board.board_w, self.board.board_h, self.board.piece_list,
+                                                  self.starting_point, [cur_target])
+            backtrace.extend(ucs(sub_problem))
+            acquired.add(cur_target)
+            targets_remaining.remove(cur_target)
+            cur_target = self.next_target(acquired, targets_remaining)
+
+        return backtrace
+        # util.raiseNotDefined()
+
+    def next_target(self, acquired, targets_remaining):
+        assert len(acquired) > 0
+        assert len(targets_remaining) > 0
+        closest = float('inf')
+        for target in targets_remaining:
+            for point in acquired:
+                manhattan_dist = util.manhattanDistance(target, point)
+                if manhattan_dist < closest:
+                    cur_target = target
+                    closest = manhattan_dist
+        return cur_target
 
 
 class MiniContestSearch:

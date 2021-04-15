@@ -79,32 +79,25 @@ def breadth_first_search(problem):
     Search the shallowest nodes in the search tree first.
     """
     "*** YOUR CODE HERE ***"
-    print("Start:", problem.get_start_state().state)
-    print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
-    print("Start's successors:", problem.get_successors(problem.get_start_state()))
 
     fringe = util.Queue()
     first_state = problem.get_start_state()
     visited = {first_state}
-    counter = 0
-    cur_node = Node((first_state, None, 0), 0)
-    backtrack = {counter: cur_node}
+    cur_node = Node((first_state, None, 0), None)
     fringe.push(cur_node)
 
     while True:
         cur_node = fringe.pop()
-        backtrack[counter] = cur_node
+        visited.add(cur_node)
         if problem.is_goal_state(cur_node.get_state()):
             break
         successors = problem.get_successors(cur_node.get_state())
         for triple in successors:
             if triple[STATE] not in visited:
                 visited.add(triple[STATE])
-                fringe.push(Node(triple, counter))
-        counter += 1
-    return get_path(backtrack, counter)
+                fringe.push(Node(triple, cur_node))
+    return get_path(cur_node)
     # util.raiseNotDefined()
-
 
 
 def uniform_cost_search(problem):
@@ -117,25 +110,20 @@ def uniform_cost_search(problem):
     fringe = util.PriorityQueue()
     first_state = problem.get_start_state()
     visited = {first_state}
-    counter = 0
-    cur_node = Node((first_state, None, 0), 0)
-    backtrack = {}
+    cur_node = Node((first_state, None, 0), None)
     fringe.push(cur_node, 0)
-
     while True:
         cur_node = fringe.pop()
-        backtrack[counter] = cur_node
         if problem.is_goal_state(cur_node.get_state()):
             break
         successors = problem.get_successors(cur_node.get_state())
         for triple in successors:
             if triple[STATE] not in visited:
                 visited.add(triple[STATE])
-                fringe.push(Node((triple[STATE], triple[ACTION], triple[STEP_COST] + cur_node.get_cost()), counter),
+                fringe.push(Node((triple[STATE], triple[ACTION], triple[STEP_COST] + cur_node.get_cost()), cur_node),
                             triple[STEP_COST] + cur_node.get_cost())
-        counter += 1
 
-    return get_path(backtrack, counter)
+    return get_path(cur_node)
     # util.raiseNotDefined()
 
 
@@ -156,10 +144,9 @@ def a_star_search(problem, heuristic=null_heuristic):
 
 
 class Node:
-    def __init__(self, data, parent_id):
+    def __init__(self, data, parent):
         self.data = data    # (state, action, stepCost)
-        # self.node_id = node_id
-        self.parent_id = parent_id
+        self.parent = parent
 
     def __lt__(self, other):
         return True
@@ -174,17 +161,15 @@ class Node:
         return self.data[STEP_COST]
 
     def get_parent(self):
-        return self.parent_id
+        return self.parent
 
 
-def get_path(backtrack, counter):
+def get_path(last_node):
     path = []
-    tracker = counter
-    while tracker != 0:
-        # path.append(backtrack[tracker][0][ACTION])
-        path.append(backtrack[tracker].get_action())
-
-        tracker = backtrack[tracker].get_parent()
+    cur_node = last_node
+    while cur_node.get_parent() is not None:
+        path.append(cur_node.get_action())
+        cur_node = cur_node.get_parent()
     path.reverse()
     return path
 
