@@ -66,10 +66,6 @@ def depth_first_search(problem):
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
     """
-    print("Start:", problem.get_start_state().state)
-    print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
-    print("Start's successors:", problem.get_successors(problem.get_start_state()))
-
     fringe = util.Stack()
     current_state = problem.get_start_state()
     visited = set()
@@ -121,18 +117,18 @@ def breadth_first_search(problem):
     cur_node = Node((first_state, None, 0), None)
     fringe.push(cur_node)
 
-    while True:
+    while not fringe.isEmpty():
         cur_node = fringe.pop()
         visited.add(cur_node)
         if problem.is_goal_state(cur_node.get_state()):
-            break
+            return get_path(cur_node)
         successors = problem.get_successors(cur_node.get_state())
         for triple in successors:
             if triple[STATE] not in visited:
                 visited.add(triple[STATE])
                 fringe.push(Node(triple, cur_node))
-    return get_path(cur_node)
-    # util.raiseNotDefined()
+
+    return FAILURE
 
 
 def uniform_cost_search(problem):
@@ -147,19 +143,18 @@ def uniform_cost_search(problem):
     visited = {first_state}
     cur_node = Node((first_state, None, 0), None)
     fringe.push(cur_node, 0)
-    while True:
+    while not fringe.isEmpty():
         cur_node = fringe.pop()
         if problem.is_goal_state(cur_node.get_state()):
-            break
+            return get_path(cur_node)
         successors = problem.get_successors(cur_node.get_state())
-        for triple in successors:
-            if triple[STATE] not in visited:
-                visited.add(triple[STATE])
-                fringe.push(Node((triple[STATE], triple[ACTION], triple[STEP_COST] + cur_node.get_cost()), cur_node),
-                            triple[STEP_COST] + cur_node.get_cost())
+        for (new_state, action, step_cost) in successors:
+            if new_state not in visited:
+                visited.add(new_state)
+                fringe.push(Node((new_state, action, step_cost + cur_node.get_cost()), cur_node),
+                            step_cost + cur_node.get_cost())
 
-    return get_path(cur_node)
-    # util.raiseNotDefined()
+    return FAILURE
 
 
 def null_heuristic(state, problem=None):
@@ -174,13 +169,35 @@ def a_star_search(problem, heuristic=null_heuristic):
     """
     Search the node that has the lowest combined cost and heuristic first.
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    print("Start:", problem.get_start_state().state)
+    print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
+    print("Start's successors:", problem.get_successors(problem.get_start_state()))
+
+    fringe = util.PriorityQueue()
+    first_state = problem.get_start_state()
+    visited = set()
+    fringe.push(Node((first_state, None, 0), None), 0)
+
+    while not fringe.isEmpty():
+        current_node = fringe.pop()
+        current_state = current_node.get_state()
+        if problem.is_goal_state(current_state):
+            return get_path(current_node)
+
+        visited.add(current_state)
+        successors = problem.get_successors(current_state)
+        for (new_state, action, step_cost) in successors:
+            if new_state not in visited:
+                new_cost = step_cost + current_node.get_cost()
+                priority = new_cost + heuristic(new_state, problem)
+                fringe.push(Node((new_state, action, new_cost), current_node), priority)
+
+    return FAILURE
 
 
 class Node:
     def __init__(self, data, parent):
-        self.data = data    # (state, action, stepCost)
+        self.data = data  # (state, action, stepCost)
         self.parent = parent
 
     def __lt__(self, other):

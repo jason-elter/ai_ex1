@@ -2,7 +2,6 @@ from board import Board
 from search import SearchProblem, ucs
 import util
 
-
 EMPTY_TILE = -1
 
 
@@ -71,7 +70,7 @@ class BlokusCornersProblem(SearchProblem):
         board = state.state
         right = state.board_w - 1
         top = state.board_h - 1
-        return board[0, right] != -1 and board[top, 0] != -1 and board[top, right] != -1
+        return board[0, right] != EMPTY_TILE and board[top, 0] != EMPTY_TILE and board[top, right] != EMPTY_TILE
 
     def get_successors(self, state):
         """
@@ -261,7 +260,7 @@ class ClosestLocationSearch:
 
         while targets_remaining:
             sub_problem = BlokusCoverProblem(self.board.board_w, self.board.board_h, self.board.piece_list,
-                                                  self.starting_point, [cur_target])
+                                             self.starting_point, [cur_target])
             backtrace.extend(ucs(sub_problem))
             acquired.add(cur_target)
             targets_remaining.remove(cur_target)
@@ -281,6 +280,7 @@ class ClosestLocationSearch:
                     cur_target = target
                     closest = manhattan_dist
         return cur_target
+
 
 class MiniContestSearch:
     """
