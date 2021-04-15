@@ -4,6 +4,13 @@ In search.py, you will implement generic search algorithms
 
 import util
 
+STATE = 0
+ACTION = 1
+STEP_COST = 2
+COST_FROM_ROOT = 2
+PARENT_ID = 3
+FAILURE = []
+
 
 class SearchProblem:
     """
@@ -58,20 +65,48 @@ def depth_first_search(problem):
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-
-	print("Start:", problem.get_start_state().state)
+    """
+    print("Start:", problem.get_start_state().state)
     print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
     print("Start's successors:", problem.get_successors(problem.get_start_state()))
-    """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
+    fringe = util.Stack()
+    current_state = problem.get_start_state()
+    visited = set()
+    path = list()
+    counter = [1]
 
-STATE = 0
-ACTION = 1
-STEP_COST = 2
-COST_FROM_ROOT = 2
-PARENT_ID = 3
+    while True:
+        # Check if found goal.
+        if problem.is_goal_state(current_state):
+            return path
+        elif current_state not in visited:
+            # New unvisited state so add all successors to fringe.
+            visited.add(current_state)
+            successors = problem.get_successors(current_state)
+            num_successors = len(successors)
+            if num_successors > 0:
+                counter.append(num_successors)
+                path.append(None)  # Placeholder for current's successors' moves.
+                for triple in successors:
+                    fringe.push(triple[:2])
+
+        # Check if we've exhausted the search
+        if fringe.isEmpty():
+            return FAILURE
+
+        # Proceed to next node.
+        current_state, current_move = fringe.pop()
+        # Climb back up tree if necessary.
+        if counter[-1] == 0:
+            i = -1
+            while counter[i - 1] == 0:
+                i -= 1
+            del path[i:]
+            del counter[i:]
+        # Update breadth counter and change placeholder move with correct one.
+        counter[-1] -= 1
+        path[-1] = current_move
 
 
 def breadth_first_search(problem):
@@ -104,7 +139,6 @@ def breadth_first_search(problem):
         counter += 1
     return get_path(backtrack, counter)
     # util.raiseNotDefined()
-
 
 
 def uniform_cost_search(problem):
@@ -157,7 +191,7 @@ def a_star_search(problem, heuristic=null_heuristic):
 
 class Node:
     def __init__(self, data, parent_id):
-        self.data = data    # (state, action, stepCost)
+        self.data = data  # (state, action, stepCost)
         # self.node_id = node_id
         self.parent_id = parent_id
 
@@ -187,6 +221,7 @@ def get_path(backtrack, counter):
         tracker = backtrack[tracker].get_parent()
     path.reverse()
     return path
+
 
 # Abbreviations
 bfs = breadth_first_search
