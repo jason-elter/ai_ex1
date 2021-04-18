@@ -3,7 +3,7 @@ from search import SearchProblem, ucs
 import util
 import heapq
 
-from search import dfs
+from search import astar
 from search import SearchProblem, BoardSearch
 
 EMPTY_TILE = -1
@@ -228,9 +228,9 @@ class ClosestLocationSearch:
 
     def __init__(self, board_w, board_h, piece_list, starting_point=(0, 0), targets=(0, 0)):
         self.expanded = 0
-        self.targets = targets.copy()
+        self.targets = targets
         "*** YOUR CODE HERE ***"
-        self.board = Board(board_w, board_h, 1, piece_list)
+        self.board = Board(board_w, board_h, 1, piece_list, starting_point)
         self.starting_point = starting_point
 
     def get_start_state(self):
@@ -266,64 +266,72 @@ class ClosestLocationSearch:
             return []
         if self.targets[0] == self.starting_point:
             return []
-        targets_remaining = set(self.targets)
-        acquired = {self.starting_point}
 
-        targets_remaining1 = util.PriorityQueue()
-        for t in self.targets:
-            targets_remaining1.push(t, util.manhattanDistance(self.starting_point, t))
-        # find closest target:
-        # closest = float('inf')
-        # first_target = self.targets[0]
-        # for target in self.targets:
-        #     manhattan_dist = util.manhattanDistance(target, self.starting_point)
-        #     if manhattan_dist < closest:
-        #         first_target = target
-        #         closest = manhattan_dist
-        # cur_target = self.next_target(acquired, targets_remaining)
-        # cur_target = targets_remaining1.pop()
+        targets_remaining = util.PriorityQueue()
+        for target in self.targets:
+            targets_remaining.push(target, util.manhattanDistance(self.starting_point, target))
 
-        # while targets_remaining1:
         for t in range(len(self.targets)):
-            cur_target = targets_remaining1.pop()
+            cur_target = targets_remaining.pop()
 
-            sub_problem = BlokusCoverProblem(self.board.board_w, self.board.board_h, self.board.piece_list,
-                                             self.starting_point, [cur_target])
-            backtrace.extend(ucs(sub_problem))
-            acquired.add(cur_target)
+            sub_problem = BlokusSubProblem(current_state, cur_target)
+            moves = astar(sub_problem)
+            backtrace.extend(moves)
 
-
-            # targets_remaining.remove(cur_target)
-            targets_remaining1 = self.update_targets(acquired, targets_remaining1)
-            # cur_target = targets_remaining1.pop()
-            # cur_target = self.next_target(acquired, targets_remaining)
+            for m in moves:
+                current_state = current_state.do_move(0, m)
+            self.expanded += sub_problem.expanded
 
         return backtrace
         # util.raiseNotDefined()
 
-    def update_targets(self, acquired, targets_remaining):
-        assert len(acquired) > 0
-        # closest = float('inf')
-        new_targets = util.PriorityQueue()
 
-        while not targets_remaining.isEmpty():
-            target = targets_remaining.pop()
-            for point in acquired:
-                manhattan_dist = util.manhattanDistance(target, point)
-                new_targets.push(target, manhattan_dist)
-        return new_targets
+class BlokusSubProblem(SearchProblem):
 
-    # def next_target(self, acquired, targets_remaining):
-    #     assert len(acquired) > 0
-    #     assert len(targets_remaining) > 0
-    #     closest = float('inf')
-    #     for target in targets_remaining:
-    #         for point in acquired:
-    #             manhattan_dist = util.manhattanDistance(target, point)
-    #             if manhattan_dist < closest:
-    #                 cur_target = target
-    #                 closest = manhattan_dist
-    #     return cur_target
+    def __init__(self, state, target=(0, 0)):
+        self.expanded = 0
+        self.starting_state = state
+        self.target = target
+
+    def get_start_state(self):
+        """
+        Returns the start state for the search problem
+        """
+        return self.starting_state
+
+    def is_goal_state(self, state):
+        """
+        state: Search state
+
+        Returns True if and only if the state is a valid goal state
+        """
+        return state.state[self.target] != EMPTY_TILE
+
+    def get_successors(self, state):
+        """
+        state: Search state
+
+        For a given state, this should return a list of triples,
+        (successor, action, stepCost), where 'successor' is a
+        successor to the current state, 'action' is the action
+        required to get there, and 'stepCost' is the incremental
+        cost of expanding to that successor
+        """
+        # Note that for the search problem, there is only one player - #0
+        self.expanded = self.expanded + 1
+        return [(state.do_move(0, move), move, move.piece.get_num_tiles()) for move in state.get_legal_moves(0)]
+
+    def get_cost_of_actions(self, actions):
+        """
+        actions: A list of actions to take
+
+        This method returns the total cost of a particular sequence of actions.  The sequence must
+        be composed of legal moves
+        """
+        cost_sum = 0
+        for move in actions:
+            cost_sum += move.piece.get_num_tiles()
+        return cost_sum
 
 
 class MiniContestSearch:

@@ -169,9 +169,9 @@ def a_star_search(problem, heuristic=null_heuristic):
     """
     Search the node that has the lowest combined cost and heuristic first.
     """
-    print("Start:", problem.get_start_state().state)
-    print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
-    print("Start's successors:", problem.get_successors(problem.get_start_state()))
+    # print("Start:", problem.get_start_state().state)
+    # print("Is the start a goal?", problem.is_goal_state(problem.get_start_state()))
+    # print("Start's successors:", problem.get_successors(problem.get_start_state()))
 
     fringe = util.PriorityQueue()
     first_state = problem.get_start_state()
