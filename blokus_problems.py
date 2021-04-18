@@ -1,6 +1,10 @@
 from board import Board
 from search import SearchProblem, ucs
 import util
+import heapq
+
+from search import dfs
+from search import SearchProblem, BoardSearch
 
 EMPTY_TILE = -1
 
@@ -112,32 +116,52 @@ def blokus_corners_heuristic(state, problem):
     inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
     """
     "*** YOUR CODE HERE ***"
+    pieces_left = []
 
-    def blokus_corners_heuristic(state, problem):
-        """
-        Your heuristic for the BlokusCornersProblem goes here.
+    corners_left = 0
+    if not state.connected[0, 0, state.board_w - 1]:
+        corners_left += 1
+    if not state.connected[0, state.board_h - 1, 0]:
+        corners_left += 1
+    if not state.connected[0, state.board_h - 1, state.board_w - 1]:
+        corners_left += 1
 
-        This heuristic must be consistent to ensure correctness.  First, try to come up
-        with an admissible heuristic; almost all admissible heuristics will be consistent
-        as well.
+    c = corners_left
 
-        If using A* ever finds a solution that is worse uniform cost search finds,
-        your heuristic is *not* consistent, and probably not admissible!  On the other hand,
-        inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
-        """
-        "*** YOUR CODE HERE ***"
-        cur_min = float('inf')
+    for i in range(state.piece_list.get_num_pieces()):
+        if state.pieces[0, i]:
+            heapq.heappush(pieces_left, state.piece_list.get_piece(i).get_num_tiles())
+            c -= 1
+            if c == 0:
+                break
 
-        for r in range(problem.board_h):
-            for c in range(problem.board_w):
-                if state.get_position(r, c) != EMPTY_TILE:
-                    corner_distances_normalized = ((problem.board_h - r + c) / 3, (problem.board_w - c + r) / 3,
-                                                   (problem.board_w + problem.board_h - r - c) / 3)
-                    sum_value = sum(corner_distances_normalized)
-                    if sum_value < cur_min:
-                        cur_min = sum_value
-        return cur_min
-        # util.raiseNotDefined()
+    ans = sum(pieces_left)
+    if ans >= state.board_w or ans >= state.board_h:
+        if corners_left >= 2:
+            return ans
+        else:
+            return heapq.heappop(pieces_left)
+    return ans
+
+    #
+    # for i in range(3):
+    #     heapq.heappush(pieces_left, state.board_h * state.board_w)   # why is this ok? or needed?
+
+    # answer = 0
+    # smallest = 0
+    # for i in range(corners_left):
+    #     if i == 0:
+    #         smallest = heapq.heappop(pieces_left)
+    #         answer = smallest
+    #     else:
+    #         answer += heapq.heappop(pieces_left)
+    #
+    #     if answer >= state.board_w or answer >= state.board_h:    # what does this mean about the search problem?
+    #         if corners_left >= 2:
+    #             return answer
+    #         else:
+    #             return smallest
+    # return answer
 
 
 class BlokusCoverProblem(SearchProblem):
@@ -245,6 +269,9 @@ class ClosestLocationSearch:
         targets_remaining = set(self.targets)
         acquired = {self.starting_point}
 
+        targets_remaining1 = util.PriorityQueue()
+        for t in self.targets:
+            targets_remaining1.push(t, util.manhattanDistance(self.starting_point, t))
         # find closest target:
         # closest = float('inf')
         # first_target = self.targets[0]
@@ -253,30 +280,50 @@ class ClosestLocationSearch:
         #     if manhattan_dist < closest:
         #         first_target = target
         #         closest = manhattan_dist
-        cur_target = self.next_target(acquired, targets_remaining)
+        # cur_target = self.next_target(acquired, targets_remaining)
+        # cur_target = targets_remaining1.pop()
 
-        while targets_remaining:
+        # while targets_remaining1:
+        for t in range(len(self.targets)):
+            cur_target = targets_remaining1.pop()
+
             sub_problem = BlokusCoverProblem(self.board.board_w, self.board.board_h, self.board.piece_list,
                                              self.starting_point, [cur_target])
             backtrace.extend(ucs(sub_problem))
             acquired.add(cur_target)
-            targets_remaining.remove(cur_target)
-            cur_target = self.next_target(acquired, targets_remaining)
+
+
+            # targets_remaining.remove(cur_target)
+            targets_remaining1 = self.update_targets(acquired, targets_remaining1)
+            # cur_target = targets_remaining1.pop()
+            # cur_target = self.next_target(acquired, targets_remaining)
 
         return backtrace
         # util.raiseNotDefined()
 
-    def next_target(self, acquired, targets_remaining):
+    def update_targets(self, acquired, targets_remaining):
         assert len(acquired) > 0
-        assert len(targets_remaining) > 0
-        closest = float('inf')
-        for target in targets_remaining:
+        # closest = float('inf')
+        new_targets = util.PriorityQueue()
+
+        while not targets_remaining.isEmpty():
+            target = targets_remaining.pop()
             for point in acquired:
                 manhattan_dist = util.manhattanDistance(target, point)
-                if manhattan_dist < closest:
-                    cur_target = target
-                    closest = manhattan_dist
-        return cur_target
+                new_targets.push(target, manhattan_dist)
+        return new_targets
+
+    # def next_target(self, acquired, targets_remaining):
+    #     assert len(acquired) > 0
+    #     assert len(targets_remaining) > 0
+    #     closest = float('inf')
+    #     for target in targets_remaining:
+    #         for point in acquired:
+    #             manhattan_dist = util.manhattanDistance(target, point)
+    #             if manhattan_dist < closest:
+    #                 cur_target = target
+    #                 closest = manhattan_dist
+    #     return cur_target
 
 
 class MiniContestSearch:
