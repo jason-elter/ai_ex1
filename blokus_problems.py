@@ -1,5 +1,4 @@
 from board import Board
-from search import SearchProblem, ucs
 import util
 import heapq
 
@@ -143,31 +142,13 @@ def blokus_corners_heuristic(state, problem):
             return heapq.heappop(pieces_left)
     return ans
 
-    #
-    # for i in range(3):
-    #     heapq.heappush(pieces_left, state.board_h * state.board_w)   # why is this ok? or needed?
-
-    # answer = 0
-    # smallest = 0
-    # for i in range(corners_left):
-    #     if i == 0:
-    #         smallest = heapq.heappop(pieces_left)
-    #         answer = smallest
-    #     else:
-    #         answer += heapq.heappop(pieces_left)
-    #
-    #     if answer >= state.board_w or answer >= state.board_h:    # what does this mean about the search problem?
-    #         if corners_left >= 2:
-    #             return answer
-    #         else:
-    #             return smallest
-    # return answer
 
 
 class BlokusCoverProblem(SearchProblem):
     def __init__(self, board_w, board_h, piece_list, starting_point=(0, 0), targets=[(0, 0)]):
         self.targets = targets.copy()
         self.expanded = 0
+        self.starting_point = starting_point
         self.board = Board(board_w, board_h, 1, piece_list, starting_point)
 
     def get_start_state(self):
@@ -215,9 +196,37 @@ class BlokusCoverProblem(SearchProblem):
         return cost_sum
 
 
+# TODO don't submit this
 def blokus_cover_heuristic(state, problem):
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    list = [state.piece_list.get_piece(i).get_num_tiles() for i in
+            range(state.piece_list.get_num_pieces())
+            if state.pieces[0, i]]
+    smallest = sorted(list)[:3]
+    smallest += [problem.board.board_h * problem.board.board_w] * 3   # why is this ok? or needed?
+    # Count how many corners are left to fill
+    count = 0
+    max_dist = 0
+    farthest = problem.starting_point
+    for t in problem.targets:
+        if not state.connected[0][t[0]][t[1]]:
+            count += 1
+            manhatan_dist = util.manhattanDistance(problem.starting_point, t)
+            if manhatan_dist > max_dist:
+                max_dist = manhatan_dist
+                farthest = t
+
+
+    result = 0
+    for i in range(count):
+        result += smallest[i]
+        if result >= max_dist:    # what does this mean about the serch problem?
+            if count >= 2:
+                return result
+            else:
+                return smallest[0]
+    return result
+    # util.raiseNotDefined()
 
 
 class ClosestLocationSearch:
