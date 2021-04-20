@@ -1,7 +1,6 @@
-from board import Board
 import util
-import heapq
 import math
+from board import Board
 from search import astar
 from search import SearchProblem
 
@@ -115,15 +114,10 @@ def blokus_corners_heuristic(state, problem):
     inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
     """
     "*** YOUR CODE HERE ***"
-    pieces_left = []
-
-    corners_left = 0
-    if not state.connected[0, 0, state.board_w - 1]:
-        corners_left += 1
-    if not state.connected[0, state.board_h - 1, 0]:
-        corners_left += 1
-    if not state.connected[0, state.board_h - 1, state.board_w - 1]:
-        corners_left += 1
+    # Sum corners that haven't been reached yet
+    corners_left = int(not state.connected[0, 0, state.board_w - 1]) + int(
+        not state.connected[0, state.board_h - 1, 0]) + int(
+        not state.connected[0, state.board_h - 1, state.board_w - 1])
 
     pieces_left = sorted(
         [state.piece_list.get_piece(i).get_num_tiles() + state.board_w + state.board_h for i in
@@ -199,23 +193,19 @@ def blokus_cover_heuristic(state, problem):
 
     targets_left = 0
     max_dist = 0
-    # farthest = problem.starting_point
     for t in problem.targets:
-        if not state.connected[0][t[0]][t[1]]:
+        if state.state[t] == -1:
             targets_left += 1
-            # manhattan_dist = util.manhattanDistance(problem.starting_point, t)
-            manhattan_dist = distance(problem.starting_point, t)
+            dist = distance(problem.starting_point, t)
 
-            if manhattan_dist > max_dist:
-                max_dist = manhattan_dist
-                # farthest = t
+            if dist > max_dist:
+                max_dist = dist
 
     piece_limit = targets_left
     pieces_left = []
     ans = 0
     for i in range(state.piece_list.get_num_pieces()):
         if state.pieces[0, i]:
-            # heapq.heappush(pieces_left, state.piece_list.get_piece(i).get_num_tiles())
             pieces_left.append(state.piece_list.get_piece(i).get_num_tiles())
             ans += state.piece_list.get_piece(i).get_num_tiles()
             piece_limit -= 1
@@ -371,6 +361,6 @@ class MiniContestSearch:
 
 
 def distance(xy1, xy2):
-    x_dist = abs(xy1[0] - xy2[0])
-    y_dist = abs(xy1[1] - xy2[1])
-    return int(math.sqrt(pow(x_dist, 2) + pow(y_dist, 2)))
+    x_dist = xy1[0] - xy2[0]
+    y_dist = xy1[1] - xy2[1]
+    return int(math.sqrt((x_dist ** 2) + (y_dist ** 2)))
