@@ -115,6 +115,7 @@ def blokus_corners_heuristic(state, problem):
     inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
     """
     "*** YOUR CODE HERE ***"
+    pieces_left = []
 
     corners_left = 0
     if not state.connected[0, 0, state.board_w - 1]:
@@ -124,21 +125,13 @@ def blokus_corners_heuristic(state, problem):
     if not state.connected[0, state.board_h - 1, state.board_w - 1]:
         corners_left += 1
 
-    c = corners_left
-
-    for i in range(state.piece_list.get_num_pieces()):
-        if state.pieces[0, i]:
-            heapq.heappush(pieces_left, state.piece_list.get_piece(i).get_num_tiles())
-            c -= 1
-            if c == 0:
-                break
-
-    ans = sum(pieces_left)
-    if ans >= state.board_w or ans >= state.board_h:
-        if corners_left >= 2:
-            return ans
-        else:
-            return heapq.heappop(pieces_left)
+    pieces_left = sorted(
+        [state.piece_list.get_piece(i).get_num_tiles() + state.board_w + state.board_h for i in
+         range(state.piece_list.get_num_pieces()) if
+         state.pieces[0, i]])
+    ans = sum(pieces_left[:corners_left])
+    if ans >= min(state.board_w, state.board_h) and corners_left < 2:
+        return pieces_left[0]
     return ans
 
 

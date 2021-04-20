@@ -181,13 +181,13 @@ def a_star_search(problem, heuristic=null_heuristic):
     while not fringe.isEmpty():
         current_node = fringe.pop()
         current_state = current_node.get_state()
-        if problem.is_goal_state(current_state):
-            return get_path(current_node)
+        if current_state not in visited:
+            if problem.is_goal_state(current_state):
+                return get_path(current_node)
 
-        visited.add(current_state)
-        successors = problem.get_successors(current_state)
-        for (new_state, action, step_cost) in successors:
-            if new_state not in visited:
+            visited.add(current_state)
+            successors = problem.get_successors(current_state)
+            for (new_state, action, step_cost) in successors:
                 new_cost = step_cost + current_node.get_cost()
                 priority = new_cost + heuristic(new_state, problem)
                 fringe.push(Node((new_state, action, new_cost), current_node), priority)
