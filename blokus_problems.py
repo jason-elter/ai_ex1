@@ -3,7 +3,7 @@ import util
 import heapq
 import math
 from search import astar
-from search import SearchProblem, BoardSearch
+from search import SearchProblem
 
 EMPTY_TILE = -1
 
@@ -115,7 +115,6 @@ def blokus_corners_heuristic(state, problem):
     inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
     """
     "*** YOUR CODE HERE ***"
-    pieces_left = []
 
     corners_left = 0
     if not state.connected[0, 0, state.board_w - 1]:
@@ -141,7 +140,6 @@ def blokus_corners_heuristic(state, problem):
         else:
             return heapq.heappop(pieces_left)
     return ans
-
 
 
 class BlokusCoverProblem(SearchProblem):
@@ -199,32 +197,48 @@ class BlokusCoverProblem(SearchProblem):
 # TODO don't submit this
 def blokus_cover_heuristic(state, problem):
     "*** YOUR CODE HERE ***"
-    list = [state.piece_list.get_piece(i).get_num_tiles() for i in
-            range(state.piece_list.get_num_pieces())
-            if state.pieces[0, i]]
-    smallest = sorted(list)[:3]
-    smallest += [problem.board.board_h * problem.board.board_w] * 3   # why is this ok? or needed?
+    # list = [state.piece_list.get_piece(i).get_num_tiles() for i in
+    #         range(state.piece_list.get_num_pieces())
+    #         if state.pieces[0, i]]
+    # smallest = sorted(list)[:3]
+    # smallest += [problem.board.board_h * problem.board.board_w] * 3   # why is this ok? or needed?
     # Count how many corners are left to fill
-    count = 0
+
+    targets_left = 0
     max_dist = 0
-    farthest = problem.starting_point
+    # farthest = problem.starting_point
     for t in problem.targets:
         if not state.connected[0][t[0]][t[1]]:
-            count += 1
-            manhatan_dist = util.manhattanDistance(problem.starting_point, t)
-            if manhatan_dist > max_dist:
-                max_dist = manhatan_dist
-                farthest = t
+            targets_left += 1
+            # manhattan_dist = util.manhattanDistance(problem.starting_point, t)
+            manhattan_dist = distance(problem.starting_point, t)
 
+            if manhattan_dist > max_dist:
+                max_dist = manhattan_dist
+                # farthest = t
 
+    piece_limit = targets_left
+    pieces_left = []
+    ans = 0
+    for i in range(state.piece_list.get_num_pieces()):
+        if state.pieces[0, i]:
+            # heapq.heappush(pieces_left, state.piece_list.get_piece(i).get_num_tiles())
+            pieces_left.append(state.piece_list.get_piece(i).get_num_tiles())
+            ans += state.piece_list.get_piece(i).get_num_tiles()
+            piece_limit -= 1
+            if piece_limit == 0:
+                break
+
+    pieces_left = sorted(pieces_left[:3])
+    pieces_left.append(problem.board.board_w * problem.board.board_h)
     result = 0
-    for i in range(count):
-        result += smallest[i]
-        if result >= max_dist:    # what does this mean about the serch problem?
-            if count >= 2:
+    for i in range(targets_left):
+        result += pieces_left[i]
+        if result >= max_dist:
+            if targets_left >= 2:
                 return result
             else:
-                return smallest[0]
+                return pieces_left[0]
     return result
     # util.raiseNotDefined()
 
