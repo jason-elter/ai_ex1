@@ -1,7 +1,7 @@
 from board import Board
 import util
 import heapq
-
+import math
 from search import astar
 from search import SearchProblem, BoardSearch
 
@@ -278,7 +278,7 @@ class ClosestLocationSearch:
 
         targets_remaining = util.PriorityQueue()
         for target in self.targets:
-            targets_remaining.push(target, util.manhattanDistance(self.starting_point, target))
+            targets_remaining.push(target, distance(self.starting_point, target))
 
         for t in range(len(self.targets)):
             cur_target = targets_remaining.pop()
@@ -361,3 +361,9 @@ class MiniContestSearch:
     def solve(self):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
+
+
+def distance(xy1, xy2):
+    x_dist = abs(xy1[0] - xy2[0])
+    y_dist = abs(xy1[1] - xy2[1])
+    return int(math.sqrt(pow(x_dist, 2) + pow(y_dist, 2)))
