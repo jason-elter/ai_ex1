@@ -181,16 +181,8 @@ class BlokusCoverProblem(SearchProblem):
         return cost_sum
 
 
-# TODO don't submit this
 def blokus_cover_heuristic(state, problem):
     "*** YOUR CODE HERE ***"
-    # list = [state.piece_list.get_piece(i).get_num_tiles() for i in
-    #         range(state.piece_list.get_num_pieces())
-    #         if state.pieces[0, i]]
-    # smallest = sorted(list)[:3]
-    # smallest += [problem.board.board_h * problem.board.board_w] * 3   # why is this ok? or needed?
-    # Count how many corners are left to fill
-
     targets_left = 0
     max_dist = 0
     for t in problem.targets:
