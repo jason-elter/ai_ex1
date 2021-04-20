@@ -1,6 +1,5 @@
 from board import Board
 import util
-import heapq
 import math
 from search import astar
 from search import SearchProblem, BoardSearch
@@ -115,33 +114,19 @@ def blokus_corners_heuristic(state, problem):
     inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
     """
     "*** YOUR CODE HERE ***"
-    pieces_left = []
+    # Sum corners that haven't been reached yet
+    corners_left = int(not state.connected[0, 0, state.board_w - 1]) + int(
+        not state.connected[0, state.board_h - 1, 0]) + int(
+        not state.connected[0, state.board_h - 1, state.board_w - 1])
 
-    corners_left = 0
-    if not state.connected[0, 0, state.board_w - 1]:
-        corners_left += 1
-    if not state.connected[0, state.board_h - 1, 0]:
-        corners_left += 1
-    if not state.connected[0, state.board_h - 1, state.board_w - 1]:
-        corners_left += 1
-
-    c = corners_left
-
-    for i in range(state.piece_list.get_num_pieces()):
-        if state.pieces[0, i]:
-            heapq.heappush(pieces_left, state.piece_list.get_piece(i).get_num_tiles())
-            c -= 1
-            if c == 0:
-                break
-
-    ans = sum(pieces_left)
-    if ans >= state.board_w or ans >= state.board_h:
-        if corners_left >= 2:
-            return ans
-        else:
-            return heapq.heappop(pieces_left)
+    pieces_left = sorted(
+        [state.piece_list.get_piece(i).get_num_tiles() + state.board_w + state.board_h for i in
+         range(state.piece_list.get_num_pieces()) if
+         state.pieces[0, i]])
+    ans = sum(pieces_left[:corners_left])
+    if ans >= min(state.board_w, state.board_h) and corners_left < 2:
+        return pieces_left[0]
     return ans
-
 
 
 class BlokusCoverProblem(SearchProblem):
@@ -203,7 +188,7 @@ def blokus_cover_heuristic(state, problem):
             range(state.piece_list.get_num_pieces())
             if state.pieces[0, i]]
     smallest = sorted(list)[:3]
-    smallest += [problem.board.board_h * problem.board.board_w] * 3   # why is this ok? or needed?
+    smallest += [problem.board.board_h * problem.board.board_w] * 3  # why is this ok? or needed?
     # Count how many corners are left to fill
     count = 0
     max_dist = 0
@@ -216,11 +201,10 @@ def blokus_cover_heuristic(state, problem):
                 max_dist = manhatan_dist
                 farthest = t
 
-
     result = 0
     for i in range(count):
         result += smallest[i]
-        if result >= max_dist:    # what does this mean about the serch problem?
+        if result >= max_dist:  # what does this mean about the serch problem?
             if count >= 2:
                 return result
             else:
