@@ -115,9 +115,8 @@ def blokus_corners_heuristic(state, problem):
     """
     "*** YOUR CODE HERE ***"
     # Sum corners that haven't been reached yet
-    corners_left = int(not state.connected[0, 0, state.board_w - 1]) + int(
-        not state.connected[0, state.board_h - 1, 0]) + int(
-        not state.connected[0, state.board_h - 1, state.board_w - 1])
+    corners_left = -state.state[0, state.board_w - 1] - state.state[state.board_h - 1, 0] - state.state[
+        state.board_h - 1, state.board_w - 1]
 
     pieces_left = sorted(
         [state.piece_list.get_piece(i).get_num_tiles() + state.board_w + state.board_h for i in
